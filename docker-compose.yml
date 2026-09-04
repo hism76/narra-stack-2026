@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  narra-all-in-one:
+    build:
+      context: ./narra-register
+      dockerfile: Dockerfile
+    container_name: narra-all-in-one
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8001:8000"
+    volumes:
+      - ./narra-register:/app
+      - ./shared-data:/app/data
+    environment:
+      - PYTHONUNBUFFERED=1
+      - TZ=Asia/Shanghai
+      - NETMIND_PROXY=${NETMIND_PROXY:-http://clash-proxy:7890}
+      - YYDS_KEY=${YYDS_KEY}
+      - ADMIN_USER=${ADMIN_USER:-admin}
+      - ADMIN_PASS=${ADMIN_PASS:-admin123456}
+    networks:
+      - default
+    mem_limit: 512m
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - "-c"
+        - "import urllib.request,sys; sys.exit(0)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    logging:
+      driver: json-file
+      options:
+        max-size: "15m"
+        max-file: "3"
+
+  cloudflared-narra:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared-narra
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --protocol http2 run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    networks:
+      - default
+    mem_limit: 256m
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+networks:
+  default:
+    name: omnibot-stack_omnibot-net
+    external: true

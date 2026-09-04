@@ -1,0 +1,39 @@
+# 敏感凭据与环境文件 (严禁提交)
+.env
+.env.local
+*.pem
+*.key
+
+# 运行时数据目录与 SQLite 数据库
+shared-data/
+data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3
+
+# Python 缓存与编译字节码
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.pytest_cache/
+.coverage
+htmlcov/
+
+# 日志、临时与进程文件
+*.log
+logs/
+tmp/
+*.pid
+
+# 系统与编辑器缓存
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*.code-workspace

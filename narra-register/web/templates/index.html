@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NarraNexus 智能控制台</title>
+<style>
+:root{
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --card-subtle: #f1f5f9;
+  --card-hover: #f8fafc;
+  --border: #e2e8f0;
+  --border-focus: #3b82f6;
+  --border-subtle: #f1f5f9;
+  --text: #0f172a;
+  --text-secondary: #334155;
+  --muted: #64748b;
+  --subtle: #94a3b8;
+  --primary: #0f172a;
+  --primary-hover: #1e293b;
+  --primary-fg: #ffffff;
+  --acc: #2563eb;
+  --acc-hover: #1d4ed8;
+  --acc-light: #eff6ff;
+  --ok: #16a34a;
+  --ok-bg: #f0fdf4;
+  --ok-border: #bbf7d0;
+  --warn: #d97706;
+  --warn-bg: #fffbeb;
+  --warn-border: #fde68a;
+  --err: #dc2626;
+  --err-bg: #fef2f2;
+  --err-border: #fecaca;
+  --live: #10b981;
+  --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.04);
+  --shadow: 0 1px 3px 0 rgba(0,0,0,0.06), 0 1px 2px -1px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.06), 0 2px 4px -2px rgba(0,0,0,0.04);
+  --radius: 10px;
+  --radius-sm: 6px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.5 -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  overflow-x: hidden;
+  letter-spacing: -0.01em;
+}
+.wrap{max-width: 1160px; margin: 0 auto; padding: 24px 18px 80px;}
+.icon{display:inline-block;width:16px;height:16px;stroke-width:1.8;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle;flex-shrink:0}
+.icon.lg{width:20px;height:20px}
+.icon.sm{width:14px;height:14px}
+header{display:flex;align-items:center;gap:14px;margin-bottom:24px;flex-wrap:wrap}
+.logo-box{
+  width:40px;height:40px;border-radius:10px;background:var(--primary);
+  display:flex;align-items:center;justify-content:center;color:#fff;
+  box-shadow:var(--shadow-sm);
+}
+h1{font-size:18px;font-weight:600;letter-spacing:-0.02em}
+.sub{font-size:12px;color:var(--muted);margin-top:2px}
+.spacer{flex:1}
+.live-badge{
+  font-size:12px;color:var(--muted);background:var(--card);
+  border:1px solid var(--border);border-radius:20px;padding:4px 10px;
+  display:inline-flex;align-items:center;gap:6px;box-shadow:var(--shadow-sm);
+}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--live);display:inline-block}
+
+/* Stats Cards */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+.stat{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:16px;box-shadow:var(--shadow-sm);position:relative;overflow:hidden;
+}
+.stat .f{font-size:12px;font-weight:500;color:var(--muted);display:flex;align-items:center;gap:6px}
+.stat .v{font-size:24px;font-weight:700;margin-top:8px;letter-spacing:-0.03em;color:var(--text)}
+
+/* Tabs Navigation */
+.tabs{
+  display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:20px;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.tab{
+  background:transparent;border:none;padding:10px 14px;font-size:13px;font-weight:500;
+  color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s ease;
+  white-space:nowrap;display:inline-flex;align-items:center;gap:6px;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--acc);border-bottom-color:var(--acc);font-weight:600}
+
+/* Panels */
+.panel{display:none}
+.panel.active{display:block}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.card{
+  background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+  padding:20px;box-shadow:var(--shadow-sm);margin-bottom:16px;
+}
+.card.full{width:100%}
+.card h3{font-size:14px;font-weight:600;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+
+/* Forms & Inputs */
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.input, .select{
+  background:#ffffff;border:1px solid var(--border);border-radius:var(--radius-sm);
+  padding:8px 12px;font-size:13px;color:var(--text);outline:none;transition:border .15s ease;
+}
+.input:focus, .select:focus{border-color:var(--border-focus);box-shadow:0 0 0 3px rgba(59,130,246,0.1)}
+.input::placeholder{color:var(--subtle)}
+.f{font-size:12px;font-weight:500;color:var(--text-secondary);margin-bottom:4px;display:block}
+
+/* Buttons */
+.btn{
+  background:#ffffff;color:var(--text-secondary);border:1px solid var(--border);
+  padding:7px 14px;border-radius:var(--radius-sm);cursor:pointer;font-size:13px;
+  font-weight:500;transition:all .15s ease;display:inline-flex;align-items:center;
+  justify-content:center;gap:6px;box-shadow:var(--shadow-sm);
+}
+.btn:hover{background:var(--card-subtle);border-color:var(--subtle);color:var(--text)}
+.btn:active{transform:scale(0.98)}
+.btn.primary{background:var(--primary);color:#ffffff;border-color:var(--primary)}
+.btn.primary:hover{background:var(--primary-hover);color:#ffffff}
+.btn.ghost{background:transparent;border-color:transparent;box-shadow:none}
+.btn.ghost:hover{background:var(--card-subtle)}
+.btn.sm{padding:5px 10px;font-size:12px;border-radius:5px}
+.btn.danger{background:#ffffff;color:var(--err);border-color:var(--err-border)}
+.btn.danger:hover{background:var(--err-bg);border-color:var(--err)}
+
+/* Badges & Tables */
+.badge{padding:3px 8px;border-radius:5px;font-size:11px;font-weight:600;display:inline-flex;align-items:center;gap:4px;line-height:1.2}
+.badge.ok{background:var(--ok-bg);color:var(--ok);border:1px solid var(--ok-border)}
+.badge.cooling{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-border)}
+.badge.invalid{background:var(--err-bg);color:var(--err);border:1px solid var(--err-border)}
+.table{width:100%;border-collapse:collapse;font-size:13px}
+.table th, .table td{padding:10px 14px;text-align:left;border-bottom:1px solid var(--border)}
+.table th{color:var(--muted);font-weight:600;font-size:12px;background:var(--bg);text-transform:uppercase;letter-spacing:0.02em}
+.table tr:hover td{background:#fafafa}
+.table .mono{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px}
+
+/* Progress & Logs */
+.bar{height:6px;background:var(--border-subtle);border-radius:3px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--acc);transition:width .2s ease}
+.logs{
+  background:#0f172a;color:#e2e8f0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;
+  font-size:12px;padding:12px;border-radius:var(--radius-sm);height:260px;overflow-y:auto;
+  line-height:1.6;margin-top:12px;white-space:pre-wrap;word-break:break-all;
+}
+
+/* Toast Notification */
+.toast{
+  position:fixed;bottom:24px;right:24px;padding:10px 16px;border-radius:var(--radius-sm);
+  background:var(--primary);color:#ffffff;font-size:13px;font-weight:500;box-shadow:var(--shadow-md);
+  display:none;z-index:9999;transition:opacity .2s ease;
+}
+.toast.ok{background:var(--ok)}
+.toast.err{background:var(--err)}
+.toast.warn{background:var(--warn)}
+
+@media(max-width:820px){
+  .grid2{grid-template-columns:1fr}
+  .wrap{padding:16px 12px 60px}
+  .stats{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <!-- Top Header -->
+  <header>
+    <div class="logo-box">
+      <svg class="icon lg" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </div>
+    <div>
+      <h1>NarraNexus 智能控制台</h1>
+      <div class="sub">OpenAI / Responses API 兼容网关 & 账号池自动化调度</div>
+    </div>
+    <div class="spacer"></div>
+    <div class="live-badge" id="live-indicator"><i class="live-dot"></i> 网关运行正常</div>
+    <button class="btn sm" id="btn-refresh">
+      <svg class="icon sm" viewBox="0 0 24 24"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+      刷新数据
+    </button>
+  </header>
+
+  <!-- Metric Statistics -->
+  <div class="stats">
+    <div class="stat">
+      <div class="f">
+        <svg class="icon sm" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        总账号数
+      </div>
+      <div class="v" id="st-total">0</div>
+    </div>
+    <div class="stat">
+      <div class="f" style="color:var(--ok)">
+        <svg class="icon sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        活跃可用
+      </div>
+      <div class="v" id="st-active" style="color:var(--ok)">0</div>
+    </div>
+    <div class="stat">
+      <div class="f" style="color:var(--warn)">
+        <svg class="icon sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        冷却中
+      </div>
+      <div class="v" id="st-cooling" style="color:var(--warn)">0</div>
+    </div>
+    <div class="stat">
+      <div class="f" style="color:var(--acc)">
+        <svg class="icon sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m10 15 5-3-5-3v6Z"/></svg>
+        全量模型数
+      </div>
+      <div class="v" id="st-models" style="color:var(--acc)">91</div>
+    </div>
+  </div>
+
+  <!-- Navigation Tabs -->
+  <div class="tabs" id="tabs">
+    <button class="tab active" data-p="p-overview">
+      <svg class="icon sm" viewBox="0 0 24 24"><rect width="7" height="9" x="3" y="3" rx="1"/><rect width="7" height="5" x="14" y="3" rx="1"/><rect width="7" height="9" x="14" y="12" rx="1"/><rect width="7" height="5" x="3" y="16" rx="1"/></svg>
+      系统看板
+    </button>
+    <button class="tab" data-p="p-accounts">
+      <svg class="icon sm" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      账号池管理
+    </button>
+    <button class="tab" data-p="p-task">
+      <svg class="icon sm" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      批量自动注册
+    </button>
+    <button class="tab" data-p="p-keys">
+      <svg class="icon sm" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+      API 密钥与接入
+    </button>
+    <button class="tab" data-p="p-settings">
+      <svg class="icon sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      系统核心设置
+    </button>
+  </div>
+
+  <!-- Panel 1: Overview -->
+  <div class="panel active" id="p-overview">
+    <div class="grid2">
+      <!-- Narra Gateway Info -->
+      <div class="card">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><polygon points="6 2 18 2 18 6 6 6 6 2"/><rect width="20" height="14" x="2" y="6" rx="2"/></svg>
+          NarraNexus 官方模型网关
+          <span class="badge ok" style="margin-left:auto">在线就绪</span>
+        </h3>
+        <div class="sub" style="margin-bottom:14px;line-height:1.7">
+          全量接入官方 91 个主流大模型（DeepSeek V4/V3、Claude 4.8/Sonnet、GPT-5.4/5.5、Kimi K3、Qwen 3.8/3.6、Gemini 3.1 等）。
+        </div>
+        <div class="row" style="margin-bottom:8px">
+          <span class="badge ok">支持 /v1/chat/completions</span>
+          <span class="badge ok">支持 /v1/responses</span>
+          <span class="badge ok">reasoning_effort 深度透传</span>
+        </div>
+        <div class="sub" style="color:var(--muted);font-size:11px">首包前无感故障转移 · 智能故障冷却 · SSE 零损耗思维链流式直出</div>
+      </div>
+      <!-- Quick API Setup Card -->
+      <div class="card">
+        <h3>
+          <svg class="icon" viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+          第三方客户端一键接入
+        </h3>
+        <div class="sub" style="margin-bottom:12px;line-height:1.7">
+          支持 New API、One API、Cherry Studio、Claude Code、Cursor 等全生态。
+        </div>
+        <div class="sub" style="background:var(--bg);padding:10px;border-radius:var(--radius-sm);margin-bottom:8px">
+          <div><b>API Base URL:</b> <code class="mono" id="overview-base-url">http://127.0.0.1:8001</code></div>
+          <div style="margin-top:4px"><b>推荐模型:</b> <code class="mono">deepseek-ai/DeepSeek-V4-Pro</code>、<code class="mono">openai/gpt-5.4</code></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 2: Accounts -->
+  <div class="panel" id="p-accounts">
+    <div class="card full">
+      <h3>
+        <svg class="icon" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+        已绑定账号池列表
+      </h3>
+      <div class="sub" style="margin-bottom:10px">💡 移动端提示：可向右横向滑动表格查看【状态、额度、调用统计、测试/删除】操作栏</div>
+      <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;width:100%">
+        <table class="table" style="min-width:650px">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>账号邮箱</th>
+              <th>状态</th>
+              <th>额度</th>
+              <th>成功 / 失败</th>
+              <th>更新时间</th>
+              <th>操作</th>
+            </tr>
+          </thead>
+          <tbody id="accounts-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 3: Task (Batch Register) -->
+  <div class="panel" id="p-task">
+    <div class="card full">
+      <h3>
+        <svg class="icon" viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+        批量自动注册任务
+      </h3>
+      <div class="row">
+        <div><label class="f">目标注册数量</label><input class="input" id="tk-count" type="number" value="5" style="width:110px"></div>
+        <div><label class="f">注册间隔(秒)</label><input class="input" id="tk-interval" type="number" value="2" style="width:110px"></div>
+        <div><label class="f">验证码超时(秒)</label><input class="input" id="tk-timeout" type="number" value="60" style="width:130px" placeholder="默认60秒"></div>
+        <div><label class="f">域名后缀策略</label>
+          <select class="select" id="tk-domain">
+            <option value="smart">智能选域</option>
+            <option value="random">随机后缀</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-top:14px">
+        <button class="btn primary" id="btn-task-start">
+          <svg class="icon sm" viewBox="0 0 24 24"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          启动注册任务
+        </button>
+        <button class="btn danger" id="btn-task-stop">
+          <svg class="icon sm" viewBox="0 0 24 24"><rect width="14" height="14" x="5" y="5" rx="2"/></svg>
+          停止任务
+        </button>
+        <button class="btn" id="btn-resume">
+          <svg class="icon sm" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+          恢复未完成
+        </button>
+        <button class="btn ghost sm" id="btn-test-yyds">测 YYDS 连通性</button>
+      </div>
+      <div class="bar" style="margin:16px 0 8px"><i id="task-prog" style="width:0%"></i></div>
+      <div class="row" style="justify-content:space-between;margin-bottom:12px">
+        <span class="sub" id="task-text">就绪</span>
+        <span class="sub" id="task-state">空闲</span>
+      </div>
+      <div class="row" style="justify-content:space-between;align-items:center">
+        <label class="sub" style="display:flex;align-items:center;gap:6px;cursor:pointer"><input type="checkbox" id="autoscroll" checked> 自动滚动最新日志</label>
+        <button class="btn ghost sm" id="btn-task-clear">清空日志</button>
+      </div>
+      <div class="logs" id="logs"></div>
+    </div>
+  </div>
+
+  <!-- Panel 4: Keys -->
+  <div class="panel" id="p-keys">
+    <div class="card full">
+      <h3>
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="7.5" cy="15.5" r="5.5"/><path d="m21 2-9.6 9.6"/><path d="m15.5 7.5 3 3L22 7l-3-3"/></svg>
+        网关客户端 API 密钥
+      </h3>
+      <div class="row" style="margin-bottom:16px">
+        <input class="input" id="nk-name" placeholder="客户端备注 (如: Cherry Studio)" style="width:240px">
+        <input class="input" id="nk-key" placeholder="API Key (留空自动生成 sk-...)" style="width:260px">
+        <input class="input" id="nk-rpm" type="number" placeholder="RPM (0=不限)" style="width:110px">
+        <button class="btn primary sm" id="btn-key-add">
+          <svg class="icon sm" viewBox="0 0 24 24"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+          添加 Key
+        </button>
+      </div>
+      <div style="overflow-x:auto">
+        <table class="table">
+          <thead><tr><th>名称</th><th>API Key</th><th>RPM 限制</th><th>调用 (总/成/败)</th><th>最后活跃</th><th>操作</th></tr></thead>
+          <tbody id="keys-tbody"></tbody>
+        </table>
+      </div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn primary" id="btn-keys-save">保存 Key 列表</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Panel 5: Settings (精炼定制) -->
+  <div class="panel" id="p-settings">
+    <div class="card full">
+      <h3>
+        <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        NarraNexus 核心系统设置
+      </h3>
+      <div class="row" style="margin-bottom:16px">
+        <div style="flex:1;min-width:280px">
+          <label class="f">YYDS 接码 API Key</label>
+          <input class="input" id="st-yyds" style="width:100%" placeholder="如: AC-xxxxxxxxxxxxxxxxxxxxxxxx">
+        </div>
+        <div style="flex:1;min-width:280px">
+          <label class="f">NetMind 鉴权代理地址 (Proxy)</label>
+          <input class="input" id="st-proxy" style="width:100%" placeholder="默认: http://clash-proxy:7890">
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:16px">
+        <div style="flex:1;min-width:200px">
+          <label class="f">验证码轮询超时 (秒)</label>
+          <input class="input" id="st-timeout" type="number" style="width:100%" placeholder="默认 60">
+        </div>
+        <div style="flex:1;min-width:200px">
+          <label class="f">默认思考强度 (reasoning_effort)</label>
+          <select class="select" id="st-effort" style="width:100%">
+            <option value="low">低 (low)</option>
+            <option value="medium" selected>中 (medium - 默认)</option>
+            <option value="high">高 (high)</option>
+            <option value="max">极高 (max)</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:200px">
+          <label class="f">极速模式开关 (fast_mode)</label>
+          <select class="select" id="st-fastmode" style="width:100%">
+            <option value="true" selected>开启 (极速响应 / 低延迟)</option>
+            <option value="false">关闭 (完整多智能体 / 深度思考)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row" style="margin-bottom:20px">
+        <div style="flex:1;min-width:240px">
+          <label class="f">控制台登录用户名</label>
+          <input class="input" id="st-adminuser" style="width:100%" placeholder="默认: admin">
+        </div>
+        <div style="flex:1;min-width:240px">
+          <label class="f">控制台登录密码 (留空表示不修改)</label>
+          <input class="input" id="st-adminpass" type="password" style="width:100%" placeholder="新密码">
+        </div>
+      </div>
+      <button class="btn primary" id="btn-settings-save">
+        <svg class="icon sm" viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        保存系统设置
+      </button>
+    </div>
+  </div>
+
+</div>
+<div class="toast" id="toast"></div>
+<script src="/static/app.js?v=1788500023"></script>
+</body>
+</html>

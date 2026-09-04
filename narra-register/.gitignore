@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.csv
+.env
+data/
+shared-data/
+*.log
+.DS_Store
+*.txt
+!requirements.txt
+rescue_failed.txt
